@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="src/Genesis.Core/Genesis.Core.csproj" />
+  <Project Path="Genesis.App.csproj" />
+  <Project Path="tests/Genesis.Validation/Genesis.Validation.csproj" />
+</Solution>
