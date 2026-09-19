@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "gateVersion": "genesis-master-human-poc-1-license-gate-v1",
+  "reviewedUtc": "2026-09-19T00:00:00Z",
+  "policy": {
+    "default": "deny",
+    "networkInstallersAllowed": false,
+    "silentDependencyResolutionAllowed": false,
+    "unknownTermsAllowed": false,
+    "nonCommercialInputsAllowed": false,
+    "quarantineRule": "An artifact without a publisher-provided cryptographic digest may be acquired into an isolated quarantine path only. It may not be extracted, imported, executed, modified, or used to create a derivative until its SHA-256 is computed, recorded here, and its contents pass the denied-path scan.",
+    "derivedWorkDescription": "Genesis POC outputs must be described as Genesis-maintained derivatives where upstream geometry or target data contributes to them."
+  },
+  "approved": [
+    {
+      "id": "anny-0.6.0-wheel",
+      "kind": "source-code-and-parametric-asset-bundle",
+      "sourceUrl": "https://files.pythonhosted.org/packages/67/a5/59594be242b7239d725ce982bacbe5fa6a7e37075cc62488396234f2c4f8/anny-0.6.0-py3-none-any.whl",
+      "projectUrl": "https://github.com/naver/anny",
+      "version": "0.6.0",
+      "publishedUtc": "2026-08-07T00:00:00Z",
+      "fileName": "anny-0.6.0-py3-none-any.whl",
+      "sizeBytes": 47705473,
+      "sha256": "050a0b24a3e7fdb89b46dc3581947ea84225305425ac9a1a97b65ea997fb2ad6",
+      "codeLicense": "Apache-2.0",
+      "assetLicenses": {
+        "src/anny/data/mpfb2": "CC0-1.0",
+        "src/anny/data/faceunits01": "CC0-1.0",
+        "src/anny/data/soma": "Apache-2.0"
+      },
+      "permittedUse": "Inspect and execute Apache-2.0 code; use, modify, and redistribute the enumerated CC0 data; create and distribute derivatives while preserving applicable Apache license and NOTICE material.",
+      "pocUse": "Use only the native Anny/MakeHuman-derived base, rig metadata, MPFB target data, and CC0 face units needed for topology path A and limited semantic/performance targets. The wheel is unpacked directly; pip and package dependency resolution are forbidden.",
+      "requiredNotices": [
+        "Apache-2.0 license and Anny attribution/NOTICE where applicable",
+        "Voluntary MakeHuman/MPFB and Face Units provenance for CC0 data"
+      ],
+      "deniedContentPatterns": [
+        "**/smplx/**",
+        "**/smpl/**",
+        "**/*noncommercial*",
+        "**/noncommercial.zip"
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "blender-5.2.2-portable-windows-x64",
+      "kind": "offline-authoring-tool",
+      "sourceUrl": "https://download.blender.org/release/Blender5.2/blender-5.2.2-windows-x64.zip",
+      "checksumUrl": "https://download.blender.org/release/Blender5.2/blender-5.2.2.sha256",
+      "projectUrl": "https://www.blender.org/",
+      "version": "5.2.2 LTS",
+      "publishedUtc": "2026-09-15T09:16:08Z",
+      "fileName": "blender-5.2.2-windows-x64.zip",
+      "sizeBytes": 404453484,
+      "sha256": "3849d17a682cba006075aaa3f3597ecb5c9c30ec31035b2e092c53e40679b535",
+      "codeLicense": "GPL-3.0-or-later and bundled third-party notices",
+      "assetLicenses": {},
+      "permittedUse": "Run as an offline authoring and rendering tool. Ordinary output is not made GPL solely by Blender processing it.",
+      "pocUse": "Portable executable only; no system installation and no online asset-library access.",
+      "requiredNotices": [],
+      "deniedContentPatterns": [],
+      "status": "approved"
+    },
+    {
+      "id": "godot-4.7.2-dotnet-windows-x64",
+      "kind": "application-runtime-and-import-validator",
+      "sourceUrl": "https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_mono_win64.zip",
+      "projectUrl": "https://godotengine.org/download/archive/4.7.2-stable/",
+      "releaseCommit": "ed1daf0",
+      "version": "4.7.2-stable .NET",
+      "publishedUtc": "2026-08-18T16:12:00Z",
+      "fileName": "Godot_v4.7.2-stable_mono_win64.zip",
+      "sizeBytes": 116582061,
+      "sha256": "a2a48473a7414c5f19fab690518caebb738c09ef9601f6bd2388676a7f53b3c0",
+      "codeLicense": "MIT with bundled third-party notices",
+      "assetLicenses": {},
+      "permittedUse": "Run, modify, and redistribute under the MIT license and applicable third-party notices.",
+      "pocUse": "Portable editor/runtime for GLB import, application launch, headless validation, and captured POC performance metrics.",
+      "requiredNotices": [],
+      "deniedContentPatterns": [],
+      "status": "approved"
+    },
+    {
+      "id": "blender-human-base-meshes-1.4.1",
+      "kind": "cc0-human-base-asset-bundle",
+      "sourceUrl": "https://download.blender.org/demo/asset-bundles/human-base-meshes/human-base-meshes-bundle-v1.4.1.zip",
+      "projectUrl": "https://www.blender.org/download/demo-files/",
+      "version": "1.4.1",
+      "publishedUtc": "2026-01-20T14:10:51Z",
+      "fileName": "human-base-meshes-bundle-v1.4.1.zip",
+      "sizeBytes": 50643039,
+      "publisherEtag": "696f8ceb-304c05f",
+      "sha256": "811f43accbb31a88266d932f8f5563b2d13586fca0ba2693aad1f5fe582b3515",
+      "codeLicense": null,
+      "assetLicenses": {
+        "bundle": "CC0-1.0"
+      },
+      "permittedUse": "Official Blender page marks this bundle CC0; copying, modification, commercial use, and redistribution are permitted to the extent covered by CC0.",
+      "pocUse": "Candidate topology path B and anatomical/topology reference after quarantine hash and denied-path validation passed.",
+      "requiredNotices": [
+        "Voluntary Blender Studio/community provenance"
+      ],
+      "deniedContentPatterns": [],
+      "status": "approved-after-quarantine-sha256",
+      "hashProvenance": "Publisher supplied version, exact URL, byte length, Last-Modified, ETag, and CC0 declaration but no cryptographic digest. Genesis computed this SHA-256 over the quarantined download before extraction on 2026-09-19."
+    }
+  ],
+  "quarantinePendingHash": [],
+  "explicitlyDenied": [
+    {
+      "id": "anny-noncommercial-optional-bundle",
+      "patterns": ["smplx", "smpl", "noncommercial.zip"],
+      "reason": "Non-commercial/restricted optional model data is incompatible with the Genesis portable platform goal."
+    },
+    {
+      "id": "unallowlisted-installers-and-assets",
+      "patterns": ["pip install", "anny[examples]", "anny[smpl]", "Blender Online Essentials", "community MakeHuman assets"],
+      "reason": "These can resolve or download additional inputs whose exact versions and terms are not in this gate."
+    },
+    {
+      "id": "rejected-foundations",
+      "patterns": ["MetaHuman", "Reallusion", "Daz", "Human Generator", "MB-Lab", "CharMorph"],
+      "reason": "Not approved for editable raw Genesis POC redistribution under the reviewed default terms."
+    }
+  ]
+}

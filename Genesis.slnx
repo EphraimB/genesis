@@ -2,4 +2,6 @@
   <Project Path="src/Genesis.Core/Genesis.Core.csproj" />
   <Project Path="Genesis.App.csproj" />
   <Project Path="tests/Genesis.Validation/Genesis.Validation.csproj" />
+  <Project Path="tests/Genesis.MasterHuman.Validation/Genesis.MasterHuman.Validation.csproj" />
+  <Project Path="poc/master-human/package/Genesis.MasterHuman.PackageBuilder.csproj" />
 </Solution>

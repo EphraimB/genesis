@@ -1,7 +1,13 @@
 .godot/
 .idea/
 .vs/
-bin/
-obj/
+.tools/
+.cache/
+**/bin/
+**/obj/
 *.user
 *.tmp
+*.blend1
+artifacts/master-human-poc/
+poc/master-human/vendor/
+poc/master-human/work/

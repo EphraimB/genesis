@@ -1,6 +1,7 @@
 using Genesis.Core;
 using Genesis.Core.Package;
 using Godot;
+using System.Diagnostics;
 
 namespace Genesis.App;
 
@@ -28,6 +29,8 @@ public partial class Main : Control
     private Button _undo = null!;
     private Button _redo = null!;
     private ProceduralPersonPreview _preview = null!;
+    private ProductionPersonPreview _productionPreview = null!;
+    private CheckButton _productionToggle = null!;
     private FileDialog _openDialog = null!;
     private FileDialog _saveDialog = null!;
     private ConfirmationDialog _newDialog = null!;
@@ -41,11 +44,54 @@ public partial class Main : Control
         BuildTheme();
         BuildUi();
         NewPerson("Untitled Person", new PhysicalFacts(1.75, 72, 30));
-        if (OS.GetCmdlineUserArgs().Contains("--validate-genesis-app"))
+        var arguments = OS.GetCmdlineUserArgs();
+        if (arguments.Contains("--benchmark-genesis-app"))
         {
-            GD.Print("GENESIS_APP_VALIDATION_OK");
-            GetTree().Quit();
+            CallDeferred(nameof(RunBenchmark));
         }
+        else if (arguments.Contains("--validate-genesis-app"))
+        {
+            if (_productionPreview.IsLoaded)
+            {
+                GD.Print($"GENESIS_MASTER_HUMAN_METRICS load_ms={_productionPreview.LoadMilliseconds:0.00} meshes={_productionPreview.MeshCount}");
+                GD.Print("GENESIS_APP_VALIDATION_OK");
+                GetTree().Quit();
+            }
+            else
+            {
+                GD.PushError("GENESIS_APP_VALIDATION_FAILED: production Master Human GLB was not loaded.");
+                GetTree().Quit(2);
+            }
+        }
+    }
+
+    private async void RunBenchmark()
+    {
+        if (!_productionPreview.IsLoaded)
+        {
+            GD.PushError("GENESIS_MASTER_HUMAN_BENCHMARK_FAILED: production Master Human GLB was not loaded.");
+            GetTree().Quit(2);
+            return;
+        }
+        for (var index = 0; index < 60; index++)
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        var frameTimes = new List<double>(180);
+        for (var index = 0; index < 180; index++)
+        {
+            var start = Stopwatch.GetTimestamp();
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            frameTimes.Add(Stopwatch.GetElapsedTime(start).TotalMilliseconds);
+        }
+        frameTimes.Sort();
+        var p95 = frameTimes[(int)Math.Ceiling(frameTimes.Count * 0.95) - 1];
+        var vramMiB = RenderingServer.GetRenderingInfo(RenderingServer.RenderingInfo.VideoMemUsed) / (1024.0 * 1024.0);
+        var window = DisplayServer.WindowGetSize();
+        GD.Print($"GENESIS_MASTER_HUMAN_BENCHMARK p95_frame_ms={p95:0.000} vram_mib={vramMiB:0.0} " +
+                 $"load_ms={_productionPreview.LoadMilliseconds:0.00} meshes={_productionPreview.MeshCount} " +
+                 $"window={window.X}x{window.Y} samples={frameTimes.Count} warmup=60");
+        var passed = p95 <= 16.7 && vramMiB <= 4096;
+        GD.Print(passed ? "GENESIS_MASTER_HUMAN_BENCHMARK_OK" : "GENESIS_MASTER_HUMAN_BENCHMARK_FAILED");
+        GetTree().Quit(passed ? 0 : 3);
     }
 
     private void BuildUi()
@@ -84,6 +130,9 @@ public partial class Main : Control
         AddButton(bar, "Open", () => _openDialog.PopupCenteredRatio(0.72f));
         AddButton(bar, "Save", Save);
         AddButton(bar, "Save As", () => _saveDialog.PopupCenteredRatio(0.72f));
+        _productionToggle = new CheckButton { Text = "Production human", ButtonPressed = true };
+        _productionToggle.Toggled += TogglePreviewBackend;
+        bar.AddChild(_productionToggle);
         _undo = AddButton(bar, "Undo", Undo);
         _redo = AddButton(bar, "Redo", Redo);
         var spacer = new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill };
@@ -151,10 +200,13 @@ public partial class Main : Control
         var floor = new MeshInstance3D { Mesh = new CylinderMesh { TopRadius = 1.2f, BottomRadius = 1.4f, Height = 0.05f }, Position = new Vector3(0, -0.03f, 0), MaterialOverride = new StandardMaterial3D { AlbedoColor = new Color("0a2532"), Metallic = 0.6f, Roughness = 0.25f, EmissionEnabled = true, Emission = new Color("06384a") } };
         world.AddChild(floor);
         _preview = new ProceduralPersonPreview();
+        _preview.Visible = false;
         world.AddChild(_preview);
+        _productionPreview = new ProductionPersonPreview();
+        world.AddChild(_productionPreview);
         var overlay = new VBoxContainer { MouseFilter = MouseFilterEnum.Ignore, OffsetLeft = 20, OffsetTop = 20 };
-        overlay.AddChild(new Label { Text = "PROCEDURAL IDENTITY PREVIEW" });
-        var warning = new Label { Text = "Production digital-human graphics are not connected yet." };
+        overlay.AddChild(new Label { Text = "MASTER HUMAN • GAME-CLOSE POC-1" });
+        var warning = new Label { Text = "Production backend enabled • toggle in toolbar for procedural debug view." };
         warning.AddThemeColorOverride("font_color", new Color("8ca5b2"));
         overlay.AddChild(warning);
         container.AddChild(overlay);
@@ -312,7 +364,17 @@ public partial class Main : Control
         _redo.Disabled = !_history.CanRedo;
         _status.Text = $"  {message}";
         _preview.Apply(spec);
+        _productionPreview.Apply(spec);
         _syncing = false;
+    }
+
+    private void TogglePreviewBackend(bool production)
+    {
+        if (_preview is null || _productionPreview is null) return;
+        _productionPreview.Visible = production;
+        _preview.Visible = !production;
+        if (_status is not null)
+            _status.Text = production ? "  Production Master Human backend enabled." : "  Procedural debug preview enabled.";
     }
 
     private SpinBox Spin(Container parent, string label, double min, double max, double step, string path)

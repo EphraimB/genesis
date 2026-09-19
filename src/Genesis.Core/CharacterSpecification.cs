@@ -56,6 +56,7 @@ public static class SemanticPaths
     public const string Age = "facts.age_years";
     public const string DominantHand = "facts.dominant_hand";
     public const string BodyFrame = "body.frame";
+    public const string BodyComposition = "body.composition";
     public const string ShoulderWidth = "body.shoulder_width";
     public const string TorsoWidth = "body.torso_width";
     public const string HipWidth = "body.hip_width";
@@ -66,13 +67,19 @@ public static class SemanticPaths
     public const string EyeSpacing = "face.eye_spacing";
     public const string NoseWidth = "face.nose_width";
     public const string MouthWidth = "face.mouth_width";
+    public const string ApparentAge = "face.apparent_age";
     public const string SkinTone = "skin.tone";
+    public const string SkinMelanin = "skin.melanin";
+    public const string SkinUndertone = "skin.undertone";
+    public const string SkinRoughness = "skin.roughness";
+    public const string SkinFreckles = "skin.freckles";
     public const string EyeColor = "eyes.color";
     public const string HairStyle = "hair.style";
     public const string HairLength = "hair.length";
     public const string HairVolume = "hair.volume";
     public const string HairCurl = "hair.curl_amount";
     public const string HairColor = "hair.color";
+    public const string SecondaryHairStyle = "hair.secondary_style";
     public const string ClothingPresentation = "clothing.presentation";
     public const string Accessories = "accessories.description";
 }
@@ -126,18 +133,23 @@ public static class SemanticPropertyRegistry
         Add(SemanticPaths.Age, CharacterIdentityCategory.PhysicalFacts, SemanticValueKind.Integer, PhysicalFacts.MinimumAgeYears, PhysicalFacts.MaximumAgeYears);
         AddText(SemanticPaths.DominantHand, CharacterIdentityCategory.PhysicalFacts, Enum.GetNames<DominantHand>());
         AddText(SemanticPaths.BodyFrame, CharacterIdentityCategory.BodyIdentity, ["Lean", "Average", "Athletic", "Broad", "Stocky"]);
+        Add(SemanticPaths.BodyComposition, CharacterIdentityCategory.BodyIdentity, SemanticValueKind.Number, 0, 1);
         foreach (var path in new[] { SemanticPaths.ShoulderWidth, SemanticPaths.TorsoWidth, SemanticPaths.HipWidth })
             Add(path, CharacterIdentityCategory.BodyIdentity, SemanticValueKind.Number, 0.7, 1.3);
         foreach (var path in new[] { SemanticPaths.ArmLength, SemanticPaths.LegLength, SemanticPaths.JawWidth, SemanticPaths.EyeSpacing, SemanticPaths.NoseWidth, SemanticPaths.MouthWidth })
             Add(path, path.StartsWith("body.", StringComparison.Ordinal) ? CharacterIdentityCategory.BodyIdentity : CharacterIdentityCategory.FaceIdentity, SemanticValueKind.Number, 0.75, 1.25);
         AddText(SemanticPaths.HeadShape, CharacterIdentityCategory.FaceIdentity, ["Oval", "Round", "Square", "Long", "Heart"]);
+        Add(SemanticPaths.ApparentAge, CharacterIdentityCategory.FaceIdentity, SemanticValueKind.Number, 0, 1);
         Add(SemanticPaths.SkinTone, CharacterIdentityCategory.SkinIdentity, SemanticValueKind.Color);
+        foreach (var path in new[] { SemanticPaths.SkinMelanin, SemanticPaths.SkinUndertone, SemanticPaths.SkinRoughness, SemanticPaths.SkinFreckles })
+            Add(path, CharacterIdentityCategory.SkinIdentity, SemanticValueKind.Number, 0, 1);
         Add(SemanticPaths.EyeColor, CharacterIdentityCategory.EyeIdentity, SemanticValueKind.Color);
         AddText(SemanticPaths.HairStyle, CharacterIdentityCategory.HairIdentity, ["None", "Buzz", "Short", "Medium", "Long", "Curly", "Ponytail", "Bun"]);
         Add(SemanticPaths.HairLength, CharacterIdentityCategory.HairIdentity, SemanticValueKind.Number, 0, 1);
         Add(SemanticPaths.HairVolume, CharacterIdentityCategory.HairIdentity, SemanticValueKind.Number, 0.5, 1.5);
         Add(SemanticPaths.HairCurl, CharacterIdentityCategory.HairIdentity, SemanticValueKind.Number, 0, 1);
         Add(SemanticPaths.HairColor, CharacterIdentityCategory.HairIdentity, SemanticValueKind.Color);
+        AddText(SemanticPaths.SecondaryHairStyle, CharacterIdentityCategory.HairIdentity, ["None", "Short", "Curly", "Ponytail", "Bun"]);
         AddText(SemanticPaths.ClothingPresentation, CharacterIdentityCategory.ClothingIdentity, ["Neutral", "Casual", "Formal", "Athletic", "Workwear"]);
         Add(SemanticPaths.Accessories, CharacterIdentityCategory.AccessoryIdentity, SemanticValueKind.Text);
         return new ReadOnlyDictionary<string, SemanticPropertyDefinition>(values);
@@ -172,6 +184,7 @@ public sealed class CharacterSpecification
         Stage = stage;
         _properties = properties?.ToDictionary(x => x.Key, x => x.Value, StringComparer.Ordinal)
             ?? throw new ArgumentNullException(nameof(properties));
+        BackfillSchemaOneDefaults(_properties);
         _lockedCategories = lockedCategories?.ToHashSet() ?? [];
         _lockedProperties = lockedProperties?.ToHashSet(StringComparer.Ordinal) ?? [];
         foreach (var pair in _properties) SemanticPropertyRegistry.Validate(pair.Key, pair.Value);
@@ -241,26 +254,46 @@ public sealed class CharacterSpecification
         var properties = new Dictionary<string, SemanticValue>(StringComparer.Ordinal)
         {
             [SemanticPaths.BodyFrame] = SemanticValue.Text("Average"),
+            [SemanticPaths.BodyComposition] = SemanticValue.Number(0.5),
             [SemanticPaths.ShoulderWidth] = SemanticValue.Number(1),
             [SemanticPaths.TorsoWidth] = SemanticValue.Number(1),
             [SemanticPaths.HipWidth] = SemanticValue.Number(1),
             [SemanticPaths.ArmLength] = SemanticValue.Number(1),
             [SemanticPaths.LegLength] = SemanticValue.Number(1),
             [SemanticPaths.HeadShape] = SemanticValue.Text("Oval"),
+            [SemanticPaths.ApparentAge] = SemanticValue.Number(0.35),
             [SemanticPaths.JawWidth] = SemanticValue.Number(1),
             [SemanticPaths.EyeSpacing] = SemanticValue.Number(1),
             [SemanticPaths.NoseWidth] = SemanticValue.Number(1),
             [SemanticPaths.MouthWidth] = SemanticValue.Number(1),
             [SemanticPaths.SkinTone] = SemanticValue.Color(new(0.55, 0.34, 0.22)),
+            [SemanticPaths.SkinMelanin] = SemanticValue.Number(0.48),
+            [SemanticPaths.SkinUndertone] = SemanticValue.Number(0.56),
+            [SemanticPaths.SkinRoughness] = SemanticValue.Number(0.48),
+            [SemanticPaths.SkinFreckles] = SemanticValue.Number(0.12),
             [SemanticPaths.EyeColor] = SemanticValue.Color(new(0.20, 0.35, 0.28)),
             [SemanticPaths.HairStyle] = SemanticValue.Text("Short"),
             [SemanticPaths.HairLength] = SemanticValue.Number(0.25),
             [SemanticPaths.HairVolume] = SemanticValue.Number(1),
             [SemanticPaths.HairCurl] = SemanticValue.Number(0.15),
             [SemanticPaths.HairColor] = SemanticValue.Color(new(0.09, 0.05, 0.025)),
+            [SemanticPaths.SecondaryHairStyle] = SemanticValue.Text("None"),
             [SemanticPaths.ClothingPresentation] = SemanticValue.Text("Neutral"),
             [SemanticPaths.Accessories] = SemanticValue.Text("None")
         };
         return new CharacterSpecification(personId, facts, properties);
+    }
+
+    // These properties were added during Master Human POC-1 without changing the public
+    // schema version. Backfill them so Milestone 1 packages remain valid inputs.
+    private static void BackfillSchemaOneDefaults(IDictionary<string, SemanticValue> properties)
+    {
+        properties.TryAdd(SemanticPaths.BodyComposition, SemanticValue.Number(0.5));
+        properties.TryAdd(SemanticPaths.ApparentAge, SemanticValue.Number(0.35));
+        properties.TryAdd(SemanticPaths.SkinMelanin, SemanticValue.Number(0.48));
+        properties.TryAdd(SemanticPaths.SkinUndertone, SemanticValue.Number(0.56));
+        properties.TryAdd(SemanticPaths.SkinRoughness, SemanticValue.Number(0.48));
+        properties.TryAdd(SemanticPaths.SkinFreckles, SemanticValue.Number(0.12));
+        properties.TryAdd(SemanticPaths.SecondaryHairStyle, SemanticValue.Text("None"));
     }
 }
