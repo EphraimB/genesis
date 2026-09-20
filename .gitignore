@@ -11,3 +11,5 @@
 artifacts/master-human-poc/
 poc/master-human/vendor/
 poc/master-human/work/
+artifacts/master-human-poc2a/
+poc/master-human-poc2a/**/__pycache__/
