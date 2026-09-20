@@ -1,5 +1,5 @@
 # Diagnostic image layout only: no retouching, grading, or generative image edits.
-param([string]$Stage = 'pass2')
+param([string]$Stage = 'pass2', [switch]$ThreeStages)
 Add-Type -AssemblyName System.Drawing
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
 $faceRoot = Join-Path $repoRoot 'artifacts/master-human-poc2a/face'
@@ -28,17 +28,26 @@ function Draw-Fit($graphics, $imagePath, $x, $y, $w, $h) {
     } finally { $img.Dispose() }
 }
 foreach ($pair in $pairs) {
-    $canvas = New-Object System.Drawing.Bitmap(1800, 1000)
+    $width = if ($ThreeStages) { 2700 } else { 1800 }
+    $canvas = New-Object System.Drawing.Bitmap($width, 1000)
     $graphics = [System.Drawing.Graphics]::FromImage($canvas)
     try {
         $graphics.Clear([System.Drawing.Color]::FromArgb(34,34,34))
         $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
         $graphics.DrawString('POC-1 original render', $font, $white, 20, 10)
-        $graphics.DrawString("Face-only $Stage", $font, $white, 920, 10)
         Draw-Fit $graphics (Join-Path $baselineRoot ($pair[1]+'.png')) 0 55 900 900
-        Draw-Fit $graphics (Join-Path $faceRoot "$Stage/$($pair[0]).png") 900 55 900 900
+        if ($ThreeStages) {
+            $graphics.DrawString('Astra Pass 1 (preserved)', $font, $white, 920, 10)
+            $graphics.DrawString('Astra Pass 2 (final)', $font, $white, 1820, 10)
+            Draw-Fit $graphics (Join-Path $faceRoot "pass1/$($pair[0]).png") 900 55 900 900
+            Draw-Fit $graphics (Join-Path $faceRoot "pass2/$($pair[0]).png") 1800 55 900 900
+        } else {
+            $graphics.DrawString("Face-only $Stage", $font, $white, 920, 10)
+            Draw-Fit $graphics (Join-Path $faceRoot "$Stage/$($pair[0]).png") 900 55 900 900
+        }
         $graphics.DrawString('Unretouched. Lighting differs; front and three-quarter share camera parameters. Profile/detail/1m framing differs.', $small, $white, 20, 970)
-        $canvas.Save((Join-Path $comparisonRoot ($pair[0]+'_vs_poc1.png')), [System.Drawing.Imaging.ImageFormat]::Png)
+        $suffix = if ($ThreeStages) { '_poc1_pass1_pass2.png' } else { '_vs_poc1.png' }
+        $canvas.Save((Join-Path $comparisonRoot ($pair[0]+$suffix)), [System.Drawing.Imaging.ImageFormat]::Png)
     } finally { $graphics.Dispose(); $canvas.Dispose() }
 }
 $canvas = New-Object System.Drawing.Bitmap(1800, 1860)
